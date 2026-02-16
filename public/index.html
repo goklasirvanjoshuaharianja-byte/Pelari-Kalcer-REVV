@@ -2,8 +2,20 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pelari Kalcer</title>
+    <style>
+        /* CSS tetap sama seperti sebelumnya */
+        body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; }
+        canvas { display: block; }
+        #ui-container {
+            position: absolute; top: 20px; left: 20px;
+            color: white; font-family: 'Arial', sans-serif;
+            z-index: 100; pointer-events: none;
+        }
+        .ui-text { font-weight: bold; text-shadow: 2px 2px 4px #000; margin-bottom: 10px; display: block; }
+        /* ... sisa CSS kamu ... */
+    </style>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; }
         canvas { display: block; }

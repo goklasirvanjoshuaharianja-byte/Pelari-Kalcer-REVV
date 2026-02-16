@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// --- STATE GAME ---
+// --- 1. STATE GAME ---
 let isGameOver = false;
 let score = 0;
 let coinCount = 0;
@@ -10,9 +10,9 @@ const laneDistance = 3.5;
 const obstacles = [];
 const coins = [];
 const trees = [];
-let redEyes = null; // Objek pengintai baru
+let redEyes = null; 
 
-// --- SETUP THREE.JS ---
+// --- 2. THREE.JS SETUP ---
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020202); 
 scene.fog = new THREE.Fog(0x020202, 1, 85);
@@ -22,13 +22,13 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// --- LIGHTING ---
+// --- 3. LIGHTING ---
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 const neon = new THREE.PointLight(0x00ffff, 15, 50);
 neon.position.set(0, 5, 2);
 scene.add(neon);
 
-// --- OBJEK DASAR ---
+// --- 4. OBJEK DASAR ---
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(30, 2000),
     new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.5 })
@@ -46,7 +46,7 @@ scene.add(player);
 camera.position.set(0, 5, 10);
 camera.lookAt(0, 1, 0);
 
-// --- FITUR MATA MERAH (RED EYES STALKER) ---
+// --- 5. FITUR MATA MERAH ---
 function createRedEyes() {
     const group = new THREE.Group();
     const eyeGeo = new THREE.SphereGeometry(0.2, 8, 8);
@@ -59,12 +59,12 @@ function createRedEyes() {
     rightEye.position.x = 0.4;
     
     group.add(leftEye, rightEye);
-    group.position.set(0, 2, 25); // Muncul di belakang kamera
+    group.position.set(0, 2, 25); 
     scene.add(group);
     return group;
 }
 
-// --- POHON RECYCLING ---
+// --- 6. POHON RECYCLING ---
 function createTree(xPos, zPos) {
     const treeGroup = new THREE.Group();
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 6, 8), new THREE.MeshStandardMaterial({ color: 0x4a2c0a }));
@@ -77,10 +77,10 @@ function createTree(xPos, zPos) {
     return treeGroup;
 }
 
-// --- LOGIKA SPAWN (ANTI-BLOCK) ---
+// --- 7. LOGIKA SPAWN ---
 function spawnObstacle() {
     if (isGameOver) return;
-    const numObs = Math.random() > 0.6 ? 2 : 1; // Pastikan 1 jalur selalu terbuka
+    const numObs = Math.random() > 0.6 ? 2 : 1; 
     const lanes = [-laneDistance, 0, laneDistance].sort(() => 0.5 - Math.random());
     
     for(let i=0; i < numObs; i++) {
@@ -99,7 +99,31 @@ function spawnCoin() {
     coins.push(coin);
 }
 
-// --- KONTROL & ANIMASI ---
+// --- 8. KONTROL (KEYBOARD & TOUCH) ---
+
+// Keyboard
+window.addEventListener('keydown', (e) => {
+    if (isGameOver) return;
+    if (e.key === "ArrowLeft" && currentLane > -1) currentLane--;
+    if (e.key === "ArrowRight" && currentLane < 1) currentLane++;
+});
+
+// Touch Swipe (Untuk Mobile)
+let touchStartX = 0;
+let touchEndX = 0;
+
+window.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+}, false);
+
+window.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const swipeThreshold = 50;
+    if (touchEndX < touchStartX - swipeThreshold && currentLane > -1) currentLane--;
+    if (touchEndX > touchStartX + swipeThreshold && currentLane < 1) currentLane++;
+}, false);
+
+// --- 9. START & GAME OVER ---
 window.startGame = function() {
     document.getElementById('startOverlay').style.display = 'none';
     const bgm = document.getElementById('bgm');
@@ -107,7 +131,6 @@ window.startGame = function() {
     if (bgm) { bgm.volume = 0.4; bgm.play().catch(() => {}); }
     if (sfxScream) { sfxScream.play(); sfxScream.pause(); sfxScream.currentTime = 0; }
     
-    // Setup Pohon Awal
     for (let i = 0; i < 30; i++) {
         trees.push(createTree(-16, -i * 15), createTree(16, -i * 15));
     }
@@ -141,12 +164,7 @@ function handleGameOver() {
     player.material.color.setHex(0xff0000);
 }
 
-window.addEventListener('keydown', (e) => {
-    if (isGameOver) return;
-    if (e.key === "ArrowLeft" && currentLane > -1) currentLane--;
-    if (e.key === "ArrowRight" && currentLane < 1) currentLane++;
-});
-
+// --- 10. ANIMATION LOOP ---
 function animate() {
     if (isGameOver) return;
     requestAnimationFrame(animate);
@@ -154,21 +172,18 @@ function animate() {
     gameSpeed = Math.min(0.8 + (score / 12000), 2.0);
     player.position.x += (currentLane * laneDistance - player.position.x) * 0.15;
 
-    // Logika Mata Merah (Muncul di Skor 5000)
+    // Mata Merah (Skor 5000)
     if (score > 5000 && !redEyes) {
         redEyes = createRedEyes();
-        document.getElementById('warning-text').style.display = 'block';
+        if(document.getElementById('warning-text')) document.getElementById('warning-text').style.display = 'block';
     }
     if (redEyes) {
-        redEyes.position.z -= 0.02; // Perlahan mengejar dari belakang
-        redEyes.position.x = player.position.x; // Selalu mengikuti jalur pemain
-        // Jika terlalu dekat (skor makin tinggi, makin dekat)
-        if (redEyes.position.z < 12) {
-             redEyes.position.y = 2 + Math.sin(Date.now() * 0.01) * 0.5; // Efek melayang
-        }
+        redEyes.position.z -= 0.02; 
+        redEyes.position.x = player.position.x; 
+        if (redEyes.position.z < 12) redEyes.position.y = 2 + Math.sin(Date.now() * 0.01) * 0.5;
     }
 
-    // Gerakan Lingkungan
+    // Recycling
     trees.forEach(t => { t.position.z += gameSpeed; if(t.position.z > 25) t.position.z = -400; });
 
     obstacles.forEach((obs, i) => {

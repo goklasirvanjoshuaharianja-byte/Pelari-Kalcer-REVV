@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // --- 1. STATE GAME ---
 let isGameOver = false;
-let score = 0;
+let score = 999;
 let coinCount = 0;
 let currentLane = 0; 
 let gameSpeed = 0.8;

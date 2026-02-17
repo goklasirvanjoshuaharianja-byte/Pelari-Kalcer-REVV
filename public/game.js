@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 // --- 1. STATE GAME ---
-let isGameOver = true;
-let score = 999;
+let isGameOver = false;
+let score = 0;
 let coinCount = 0;
 let currentLane = 0; 
 let gameSpeed = 0.8;
